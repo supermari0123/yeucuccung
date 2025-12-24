@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Giáng Sinh Của Bé Cưng</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Cinzel', serif; color: white; }
+        
+        /* PHẦN LOGIN */
+        #login-section {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; transition: opacity 1.5s ease;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+        }
+        #login-snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .login-box {
+            background: rgba(255, 255, 255, 0.25); padding: 40px; border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.5); text-align: center;
+            backdrop-filter: blur(15px); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); z-index: 10;
+        }
+        input {
+            display: block; margin: 15px auto; padding: 12px; width: 250px;
+            border-radius: 25px; border: 1px solid #fff; background: rgba(255,255,255,0.6);
+            color: #333; outline: none; text-align: center; font-weight: bold;
+        }
+        button {
+            padding: 10px 40px; border-radius: 25px; border: none; background: #ff6b81;
+            color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 107, 129, 0.4);
+        }
+        button:hover { background: #ff4757; transform: scale(1.05); }
+
+        /* PHẦN CÂY THÔNG */
+        #part2-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; opacity: 0; z-index: 50; transition: opacity 2s ease;
+        }
+        #canvas-christmas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        
+        .content-wrapper { display: flex; width: 100%; height: 100%; align-items: center; position: relative; z-index: 2; pointer-events: none; }
+        .text-area { flex: 1; padding-left: 8%; display: flex; justify-content: flex-start; align-items: center; }
+        .tree-area-spacer { flex: 1; }
+        
+        /* CẬP NHẬT: Chỉnh chữ nhỏ hơn và cho phép xuống dòng nếu cần */
+        .typing-text {
+            font-family: 'Great Vibes', cursive; 
+            /* Chỉnh cỡ chữ nhỏ lại tại đây (từ 16px đến 24px tùy màn hình) */
+            font-size: clamp(16px, 2vw, 24px);
+            line-height: 1.6;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8); 
+            color: #ffffff;
+            white-space: pre-wrap; /* Cho phép xuống dòng */
+            opacity: 1; 
+            min-height: 50px; /* Giữ chỗ để không bị giật layout */
+        }
+
+        /* NÚT LINK SANG FILE GALAXY */
+        .gift-btn-link {
+            position: absolute; right: 50px; bottom: 50px; z-index: 100;
+            padding: 15px 30px; background: linear-gradient(45deg, #ff3333, #ff9999);
+            color: white; font-family: 'Cinzel', serif; font-weight: bold; font-size: 18px;
+            border: 2px solid white; border-radius: 50px; cursor: pointer; text-decoration: none;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.6); animation: pulseBtn 2s infinite; pointer-events: auto;
+        }
+        .gift-btn-link:hover { transform: scale(1.1); background: linear-gradient(45deg, #ff0000, #ff6666); }
+        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(255, 50, 50, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 50, 50, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 50, 50, 0); } }
+    </style>
+</head>
+<body>
+    <!-- LOGIN -->
+    <div id="login-section">
+        <canvas id="login-snow-canvas"></canvas>
+        <div class="login-box">
+            <h2 style="font-family: 'Great Vibes'; font-size: 40px; margin-bottom: 20px; color: #ff6b81;">Đăng Nhập</h2>
+            
+            <!-- ĐỔI TÊN TÀI KHOẢN VÀ PASS Ở ĐÂY HOẶC TRONG SCRIPT DƯỚI -->
+            <input type="text" id="usernameInput" placeholder="siêu cute thì nhập tên vào">
+            <input type="password" id="passwordInput" placeholder="pass để vào">
+            
+            <button onclick="checkLoginAndStart()">Đăng nhập vào trái tim ❤️</button>
+        </div>
+    </div>
+
+    <!-- CÂY THÔNG -->
+    <div id="part2-container">
+        <div id="canvas-christmas"></div>
+        <div class="content-wrapper">
+            <div class="text-area">
+                <!-- Chỗ này sẽ hiện chữ chạy -->
+                <div id="greeting-text" class="typing-text"></div>
+            </div>
+            <div class="tree-area-spacer"></div>
+        </div>
+        <!-- NÚT CHUYỂN TRANG -->
+        <a href="galaxy.html" class="gift-btn-link">Món quà 🎁</a>
+    </div>
+
+    <script>
+        // Tuyết rơi Login
+        (function() {
+            const canvas = document.getElementById('login-snow-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height, flakes = [];
+            function resize() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+            function init() { flakes = []; for(let i=0; i<200; i++) flakes.push({x:Math.random()*width, y:Math.random()*height, r:Math.random()*3+1, s:Math.random()*5+3}); }
+            function draw() {
+                ctx.clearRect(0,0,width,height); ctx.fillStyle="rgba(255,255,255,0.8)"; ctx.beginPath();
+                flakes.forEach(f => { ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r,0,Math.PI*2); f.y+=f.s; if(f.y>height) f.y=0; });
+                ctx.fill(); requestAnimationFrame(draw);
+            }
+            window.addEventListener('resize', resize); resize(); init(); draw();
+        })();
+    </script>
+
+    <script type="module">
+        import * as THREE from 'https://unpkg.com/three@0.136.0/build/three.module.js';
+
+        // ============================================
+        // !!! CẤU HÌNH TÀI KHOẢN !!!
+        // ============================================
+        const MY_USER = "nactes1tg";   
+        const MY_PASS = "sieudangyeu";    
+        // ============================================
+
+        // DANH SÁCH CÂU NÓI DỄ THƯƠNG (Sẽ hiện lần lượt)
+        const sweetMessages = [
+            "Bé cưng à...",
+            "Nay trời lạnh lắm...",
+            "Nhưng nhìn thấy em là anh thấy ấm liền à! 🥰",
+            "Sao em lại dễ thương quá vậy hả?",
+            "Làm người yêu anh nhé? ❤️",
+            "Chúc em một mùa Giáng Sinh an lành và hạnh phúc! 🎄" // Câu cuối cùng sẽ dừng lại
+        ];
+
+        window.checkLoginAndStart = function() {
+            const userInput = document.getElementById('usernameInput').value.toLowerCase();
+            const passInput = document.getElementById('passwordInput').value;
+
+            if (userInput === MY_USER && passInput === MY_PASS) {
+                startJourney();
+            } else {
+                alert("Sai tên hoặc mật khẩu rồi bé ơi! Thử lại nhé ❤️");
+            }
+        };
+
+        function startJourney() {
+            document.getElementById('login-section').style.opacity = '0';
+            setTimeout(() => { 
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('part2-container').style.display = 'block';
+                setTimeout(()=>document.getElementById('part2-container').style.opacity='1', 100);
+                initTree(); 
+                
+                // Bắt đầu chạy chữ
+                startTypingSequence();
+            }, 1000);
+        };
+
+        // --- HÀM XỬ LÝ GÕ CHỮ NỐI TIẾP ---
+        function startTypingSequence() {
+            const el = document.getElementById('greeting-text');
+            let msgIndex = 0;
+            let charIndex = 0;
+            let isDeleting = false;
+            let currentText = "";
+
+            function type() {
+                // Lấy câu hiện tại
+                const fullText = sweetMessages[msgIndex];
+
+                if (isDeleting) {
+                    // Đang xóa bớt kí tự
+                    currentText = fullText.substring(0, charIndex - 1);
+                    charIndex--;
+                } else {
+                    // Đang gõ thêm kí tự
+                    currentText = fullText.substring(0, charIndex + 1);
+                    charIndex++;
+                }
+
+                el.innerHTML = currentText;
+
+                // Tốc độ gõ
+                let typeSpeed = 100;
+                if (isDeleting) typeSpeed = 50; // Xóa nhanh hơn gõ
+
+                if (!isDeleting && charIndex === fullText.length) {
+                    // Đã gõ xong 1 câu
+                    if (msgIndex === sweetMessages.length - 1) {
+                        // Nếu là câu cuối cùng thì DỪNG LẠI, không xóa nữa
+                        return; 
+                    }
+                    // Nếu chưa phải câu cuối, đợi 2s rồi xóa
+                    typeSpeed = 2000;
+                    isDeleting = true;
+                } else if (isDeleting && charIndex === 0) {
+                    // Đã xóa xong, chuyển sang câu tiếp theo
+                    isDeleting = false;
+                    msgIndex++;
+                    typeSpeed = 500; // Đợi xíu rồi gõ câu mới
+                }
+
+                setTimeout(type, typeSpeed);
+            }
+
+            type();
+        }
+
+        // --- CODE CÂY THÔNG 3D (GIỮ NGUYÊN) ---
+        function initTree() {
+            const container = document.getElementById('canvas-christmas');
+            const scene = new THREE.Scene(); scene.background = new THREE.Color(0x000000); scene.fog = new THREE.FogExp2(0x000000, 0.02);
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 5, 45);
+            const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            const treeGroup = new THREE.Group(); treeGroup.position.set(12, -10, 0); scene.add(treeGroup);
+            const pts=[], sizes=[], shift=[];
+            for(let i=0; i<20000; i++) {
+                let p=i/20000, y=p*25, r=8*(1-p), a=i*0.1+p*50;
+                let x=r*Math.cos(a), z=r*Math.sin(a);
+                pts.push(new THREE.Vector3(x,y,z)); sizes.push(Math.random()*1.5);
+                shift.push(Math.random()*Math.PI, Math.random()*Math.PI*2, Math.random(), Math.random());
+            }
+            const geo = new THREE.BufferGeometry().setFromPoints(pts);
+            geo.setAttribute("sizes", new THREE.Float32BufferAttribute(sizes,1));
+            geo.setAttribute("shift", new THREE.Float32BufferAttribute(shift,4));
+            
+            const mat = new THREE.PointsMaterial({
+                size: 0.15, transparent: true, blending: THREE.AdditiveBlending,
+                onBeforeCompile: shader => {
+                    shader.uniforms.time = {value:0};
+                    shader.vertexShader = `uniform float time; attribute float sizes; attribute vec4 shift; varying vec3 vColor; ${shader.vertexShader}`
+                    .replace(`gl_PointSize = size;`, `gl_PointSize = size * sizes;`)
+                    .replace(`#include <color_vertex>`, `vec3 c1=vec3(1.); vec3 c2=vec3(0.8,0.9,1.); float d=position.y/25.; vColor=mix(c1,c2,d);`)
+                    .replace(`#include <begin_vertex>`, `#include <begin_vertex>\nfloat t=time; float mT=mod(shift.x+shift.z*t,6.28); float mS=mod(shift.y+shift.z*t,6.28); transformed+=vec3(cos(mS)*sin(mT),cos(mT),sin(mS)*sin(mT))*shift.a;`);
+                    shader.fragmentShader = `varying vec3 vColor; ${shader.fragmentShader}`.replace(`vec4 diffuseColor = vec4( diffuse, opacity );`, `vec4 diffuseColor = vec4( vColor, smoothstep(0.5, 0.1, length(gl_PointCoord.xy-0.5)) );`);
+                    mat.userData.shader = shader;
+                }
+            });
+            treeGroup.add(new THREE.Points(geo, mat));
+            
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                const t = clock.getElapsedTime();
+                if(mat.userData.shader) mat.userData.shader.uniforms.time.value = t;
+                treeGroup.rotation.y -= 0.005;
+                renderer.render(scene, camera);
+            }
+            animate();
+            window.addEventListener('resize', ()=>{camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);});
+        }
+    </script>
+</body>
+</html>
